@@ -10,6 +10,7 @@
 
 ## limitation
 - only tested with recent Amazon Linux AMI
+- cannot convert marketplace AMIs
 
 ## usage
 ```
