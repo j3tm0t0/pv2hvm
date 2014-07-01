@@ -91,3 +91,6 @@ deleting volumes
  vol-6d215124 deleted
 
 ```
+
+# license
+Licensed under the MIT License.
