@@ -6,10 +6,10 @@
 - EC2 Instance Profile with EC2 admin privilages
 - source AMI must be your own AMI (or allowed to create volume of root snapshot])
 - source AMI has grub installed
+- ~~ source root volume must not be partitioned (root_device_name must be /dev/sda1 or /dev/xvda1) ~~
 
 ## limitation
 - only tested with recent Amazon Linux AMI
-- source root volume must not be partitioned (root_device_name must be /dev/sda1 or /dev/xvda1)
 
 ## usage
 ```
