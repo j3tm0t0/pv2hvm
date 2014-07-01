@@ -95,8 +95,8 @@ class Pv2hvm
       "cp /mnt/usr/*/grub/*/*stage* /mnt/boot/grub/",
       "rm -f /mnt/boot/grub/device.map",
       'printf "device (hd0) /dev/xvdo\nroot (hd0,0)\nsetup (hd0)\n" | chroot /mnt grub --batch',
-      "cp /mnt/boot/grub/menu.lst /mnt/boot/grub/menu.lst.bak",
-      'cat /mnt/boot/grub/menu.lst.bak | perl -pe "s/\(hd0\)/\(hd0,0\)/;s/console=\S+/console=ttyS0/;s/root=\S+/root=LABEL=\//" > /mnt/boot/grub/menu.lst',
+      "cat /mnt/boot/grub/menu.lst | tee /dev/stderr > /mnt/boot/grub/menu.lst.bak",
+      'cat /mnt/boot/grub/menu.lst.bak | perl -pe "s/\(hd0\)/\(hd0,0\)/;s/console=\S+/console=ttyS0/;s/root=\S+/root=LABEL=\//" | tee /dev/stderr > /mnt/boot/grub/menu.lst',
       "rm -f /mnt/dev/xvdo /mnt/dev/xvdo1",
       "umount /mnt",
     ].each{|command|
