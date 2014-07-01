@@ -24,15 +24,21 @@ class Pv2hvm
 
   def convert
     self.prepare_disk()
-    self.copy_partition()
+    self.copy_disk()
     self.install_grub()
   end
 
   def prepare_disk
     puts "-- prepare volume"
 
-    puts "creating target volume with size : "+(@src[:volume_size]+1).to_s
-    @dst_vol = @ec2.volumes.create(:size => (@src[:volume_size]+1) , :availability_zone => @az, :volume_type => "gp2")
+    if @src_ami.root_device_name.match(/1$/)
+      dst_vol_size=@src[:volume_size]+1
+    else
+      dst_vol_size=@src[:volume_size]
+    end
+
+    puts "creating target volume with size : "+dst_vol_size.to_s
+    @dst_vol = @ec2.volumes.create(:size => dst_vol_size , :availability_zone => @az, :volume_type => "gp2")
     sleep 1 while @dst_vol.status != :available
     @dst_attachment = @dst_vol.attach_to(@ec2.instances[@instanceId], "/dev/sdo")
     sleep 1 while @dst_attachment.status != :attached
@@ -51,17 +57,29 @@ class Pv2hvm
 
   end
 
-  def copy_partition
-    puts "-- copy partition"
-    [
-#      "e2fsck -c -f -p /dev/xvdm",
-      "parted /dev/xvdo --script 'mklabel msdos mkpart primary 1M -1s print quit'",
-      "partprobe /dev/xvdo",
-      "udevadm settle",
-      "dd if=/dev/xvdm of=/dev/xvdo1",
-#      "e2fsck -c -f -p /dev/xvdo1",
-#      "resize2fs /dev/xvdo1"
-    ].each{|command|
+  def copy_disk
+    puts "-- copy disk"
+    if @src_ami.root_device_name.match(/1$/)
+      commands=[
+#        "e2fsck -c -f -p /dev/xvdm",
+        "parted /dev/xvdo --script 'mklabel msdos mkpart primary 1M -1s print quit'",
+        "partprobe /dev/xvdo",
+        "udevadm settle",
+        "dd if=/dev/xvdm of=/dev/xvdo1",
+#        "e2fsck -c -f -p /dev/xvdo1",
+#        "resize2fs /dev/xvdo1",
+        "e2label /dev/xvdo1 /"
+      ]
+    else
+      commands=[
+        "dd if=/dev/xvdm of=/dev/xvdo",
+        "partprobe /dev/xvdo",
+        "udevadm settle",
+        "e2label /dev/xvdo1 /"
+      ]
+    end
+
+    commands.each{|command|
       puts "# #{command}"
       abort("#{command.split(/\s+/)[0]} failed.") if !system(command)
       puts ""
@@ -124,9 +142,13 @@ class Pv2hvm
 
 end
 
-ARGV.each{|ami|
-  pv2hvm=Pv2hvm.new(ami)
-  pv2hvm.convert
-  pv2hvm.register
-  pv2hvm.cleanup
-}
+if (ARGV.length==0)
+  puts "usage: pv2hvm.rb ami-12345678 [ ami-01234567 ...]"
+else
+  ARGV.each{|ami|
+    pv2hvm=Pv2hvm.new(ami)
+    pv2hvm.convert
+    pv2hvm.register
+    pv2hvm.cleanup
+  }
+end
