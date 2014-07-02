@@ -61,21 +61,16 @@ class Pv2hvm
     puts "-- copy disk"
     if @src_ami.root_device_name.match(/1$/)
       commands=[
-#        "e2fsck -c -f -p /dev/xvdm",
         "parted /dev/xvdo --script 'mklabel msdos mkpart primary 1M -1s print quit'",
         "partprobe /dev/xvdo",
         "udevadm settle",
         "dd if=/dev/xvdm of=/dev/xvdo1",
-#        "e2fsck -c -f -p /dev/xvdo1",
-#        "resize2fs /dev/xvdo1",
-        "e2label /dev/xvdo1 /"
       ]
     else
       commands=[
         "dd if=/dev/xvdm of=/dev/xvdo",
         "partprobe /dev/xvdo",
         "udevadm settle",
-        "e2label /dev/xvdo1 /"
       ]
     end
 
@@ -96,7 +91,7 @@ class Pv2hvm
       "rm -f /mnt/boot/grub/device.map",
       'printf "device (hd0) /dev/xvdo\nroot (hd0,0)\nsetup (hd0)\n" | chroot /mnt grub --batch',
       "cat /mnt/boot/grub/menu.lst | tee /dev/stderr > /mnt/boot/grub/menu.lst.bak",
-      'cat /mnt/boot/grub/menu.lst.bak | perl -pe "s/\(hd0\)/\(hd0,0\)/;s/console=\S+/console=ttyS0/;s/root=\S+/root=LABEL=\//" | tee /dev/stderr > /mnt/boot/grub/menu.lst',
+      'cat /mnt/boot/grub/menu.lst.bak | perl -pe "s/\(hd0\)/\(hd0,0\)/;s/console=\S+/console=ttyS0/" | tee /dev/stderr > /mnt/boot/grub/menu.lst',
       "rm -f /mnt/dev/xvdo /mnt/dev/xvdo1",
       "umount /mnt",
     ].each{|command|
