@@ -126,6 +126,7 @@ EOS
     @dst_ami=@ec2.images.create(
       :root_device_name=>'/dev/xvda',
       :block_device_mappings=>{"/dev/xvda" => {:snapshot => @snapshot, :volume_type => 'gp2'}},
+      :architecture => @src_ami.architecture.to_s,
       :virtualization_type => "hvm",
       :name => @src_ami.name + "(HVM)")
     puts "image Id = #{@dst_ami.id}"
