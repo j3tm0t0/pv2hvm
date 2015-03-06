@@ -81,7 +81,7 @@ EOS
         "parted /dev/xvdo --script 'mklabel msdos mkpart primary 1M -1s print quit'",
         "partprobe /dev/xvdo",
         "udevadm settle",
-        "dd if=/dev/xvdm of=/dev/xvdo1",
+        "dd if=/dev/xvdm of=/dev/xvdo1 bs=256M",
       ]
     else
       commands=[
