@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-require 'aws-sdk'
+require 'aws-sdk-v1'
 require 'net/http'
 
 class Pv2hvm
